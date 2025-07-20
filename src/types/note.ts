@@ -6,6 +6,10 @@ export interface Note {
 	updatedAt: Date
 }
 
-export type NoteCreate = Omit<Note, "id" | "createdAt" | "updatedAt"> & {
+export type NoteCreate = Pick<Note, "title" | "content"> & {
 	title?: string
+}
+
+export type NoteUpdate = NoteCreate & {
+	id: number
 }
