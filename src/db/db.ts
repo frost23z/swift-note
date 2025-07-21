@@ -34,3 +34,40 @@ async function initDB(): Promise<IDBPDatabase<NotesDB>> {
 	})
 	return db
 }
+
+export async function getAllNotes(): Promise<Note[]> {
+	const db = await initDB()
+	return db.getAll("notes")
+}
+
+export async function getNoteById(id: number): Promise<Note | undefined> {
+	const db = await initDB()
+	return db.get("notes", id)
+}
+
+export async function createNote(note: Omit<Note, "id">): Promise<number> {
+	const db = await initDB()
+	return db.add("notes", note as Note)
+}
+
+export async function updateNote(id: number, note: Partial<Note>): Promise<void> {
+	const db = await initDB()
+	const existingNote = await db.get("notes", id)
+	if (!existingNote) {
+		throw new Error(`Note with id ${id} does not exist`)
+	}
+
+	const updatedNote = { ...existingNote, ...note }
+	await db.put("notes", updatedNote)
+}
+
+export async function deleteNote(id: number): Promise<void> {
+	const db = await initDB()
+	await db.delete("notes", id)
+}
+
+export async function searchNotes(query: string): Promise<Note[]> {
+	const db = await initDB()
+	const allNotes = await db.getAll("notes")
+	return allNotes.filter(note => note.title.includes(query) || note.content.includes(query))
+}
