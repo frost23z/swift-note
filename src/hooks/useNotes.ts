@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { createNote, deleteNote, getAllNotes, updateNote } from "../db/db"
 import type { Note, NoteCreate, NoteUpdate } from "../types/note"
 
@@ -69,6 +69,10 @@ export function useNotes() {
 			throw err
 		}
 	}, [])
+
+	useEffect(() => {
+		loadNotes()
+	}, [loadNotes])
 
 	return {
 		notes,
