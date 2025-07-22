@@ -1,5 +1,5 @@
 import { useCallback, useState } from "react"
-import { createNote, getAllNotes, updateNote } from "../db/db"
+import { createNote, deleteNote, getAllNotes, updateNote } from "../db/db"
 import type { Note, NoteCreate, NoteUpdate } from "../types/note"
 
 export function useNotes() {
@@ -60,12 +60,23 @@ export function useNotes() {
 		}
 	}, [])
 
+	const removeNote = useCallback(async (id: number) => {
+		try {
+			await deleteNote(id)
+			setNotes(prev => prev.filter(note => note.id !== id))
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to delete note")
+			throw err
+		}
+	}, [])
+
 	return {
 		notes,
 		loading,
 		error,
 		addNote,
 		editNote,
+		removeNote,
 		refresh: loadNotes
 	}
 }
