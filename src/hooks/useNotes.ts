@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
-import { createNote, getAllNotes } from "../db/db"
-import type { Note, NoteCreate } from "../types/note"
+import { createNote, getAllNotes, updateNote } from "../db/db"
+import type { Note, NoteCreate, NoteUpdate } from "../types/note"
 
 export function useNotes() {
 	const [notes, setNotes] = useState<Note[]>([])
@@ -43,11 +43,29 @@ export function useNotes() {
 		}
 	}, [])
 
+	const editNote = useCallback(async (noteUpdate: NoteUpdate) => {
+		try {
+			const updatedData = { ...noteUpdate, updatedAt: new Date() }
+			await updateNote(noteUpdate.id, updatedData)
+			setNotes(prev =>
+				prev
+					.map(note => (note.id === noteUpdate.id ? { ...note, ...updatedData } : note))
+					.sort(
+						(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+					)
+			)
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to update note")
+			throw err
+		}
+	}, [])
+
 	return {
 		notes,
 		loading,
 		error,
 		addNote,
+		editNote,
 		refresh: loadNotes
 	}
 }
