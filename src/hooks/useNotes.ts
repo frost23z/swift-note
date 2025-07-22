@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react"
 import { createNote, deleteNote, getAllNotes, updateNote } from "../db/db"
 import type { Note, NoteCreate, NoteUpdate } from "../types/note"
+import { sortNotesByUpdatedAt } from "../utils/sort"
 
 export function useNotes() {
 	const [notes, setNotes] = useState<Note[]>([])
@@ -11,11 +12,7 @@ export function useNotes() {
 		try {
 			setLoading(true)
 			const allNotes = await getAllNotes()
-			setNotes(
-				allNotes.sort(
-					(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
-				)
-			)
+			setNotes(sortNotesByUpdatedAt(allNotes))
 			setError(null)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to load notes")
@@ -48,11 +45,11 @@ export function useNotes() {
 			const updatedData = { ...noteUpdate, updatedAt: new Date() }
 			await updateNote(noteUpdate.id, updatedData)
 			setNotes(prev =>
-				prev
-					.map(note => (note.id === noteUpdate.id ? { ...note, ...updatedData } : note))
-					.sort(
-						(a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+				sortNotesByUpdatedAt(
+					prev.map(note =>
+						note.id === noteUpdate.id ? { ...note, ...updatedData } : note
 					)
+				)
 			)
 		} catch (err) {
 			setError(err instanceof Error ? err.message : "Failed to update note")
