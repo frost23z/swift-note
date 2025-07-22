@@ -1,6 +1,6 @@
 import { useCallback, useState } from "react"
-import { getAllNotes } from "../db/db"
-import type { Note } from "../types/note"
+import { createNote, getAllNotes } from "../db/db"
+import type { Note, NoteCreate } from "../types/note"
 
 export function useNotes() {
 	const [notes, setNotes] = useState<Note[]>([])
@@ -24,10 +24,30 @@ export function useNotes() {
 		}
 	}, [])
 
+	const addNote = useCallback(async (noteData: NoteCreate) => {
+		try {
+			const now = new Date()
+			const newNote: Omit<Note, "id"> = {
+				title: noteData.title || "Untitled",
+				content: noteData.content,
+				createdAt: now,
+				updatedAt: now
+			}
+			const id = await createNote(newNote)
+			const createdNote: Note = { ...newNote, id }
+			setNotes(prev => [createdNote, ...prev])
+			return createdNote
+		} catch (err) {
+			setError(err instanceof Error ? err.message : "Failed to create note")
+			throw err
+		}
+	}, [])
+
 	return {
 		notes,
 		loading,
 		error,
-		refetch: loadNotes
+		addNote,
+		refresh: loadNotes
 	}
 }
