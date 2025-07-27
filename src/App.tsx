@@ -1,8 +1,9 @@
 import { LoadingSpinner } from "./components/LoadingSpinner"
+import { NoteCard } from "./components/NoteCard"
 import { useNotes } from "./hooks/useNotes"
 
 function App() {
-	const { notes, loading, error, addNote } = useNotes()
+	const { notes, loading, error, addNote, removeNote } = useNotes()
 
 	const handleCreateNote = async () => {
 		try {
@@ -12,6 +13,14 @@ function App() {
 			})
 		} catch (error) {
 			console.error("Failed to create note:", error)
+		}
+	}
+
+	const handleDeleteNote = async (id: number) => {
+		try {
+			await removeNote(id)
+		} catch (error) {
+			console.error("Failed to delete note:", error)
 		}
 	}
 
@@ -51,19 +60,11 @@ function App() {
 				) : (
 					<div className="grid gap-4">
 						{notes.map(note => (
-							<div
+							<NoteCard
 								key={note.id}
-								className="bg-white p-6 rounded-lg shadow-sm border border-gray-200"
-							>
-								<h2 className="text-xl font-semibold text-gray-900 mb-2">
-									{note.title}
-								</h2>
-								<p className="text-gray-600 mb-4">{note.content}</p>
-								<div className="text-sm text-gray-400">
-									Created: {new Date(note.createdAt).toLocaleDateString()} •
-									Updated: {new Date(note.updatedAt).toLocaleDateString()}
-								</div>
-							</div>
+								note={note}
+								onDelete={handleDeleteNote}
+							/>
 						))}
 					</div>
 				)}
