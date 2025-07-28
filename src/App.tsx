@@ -1,19 +1,44 @@
+import { useState } from "react"
 import { LoadingSpinner } from "./components/LoadingSpinner"
 import { NoteCard } from "./components/NoteCard"
+import { NoteEditor } from "./components/NoteEditor"
 import { useNotes } from "./hooks/useNotes"
+import type { Note } from "./types/note"
 
 function App() {
-	const { notes, loading, error, addNote, removeNote } = useNotes()
+	const { notes, loading, error, addNote, removeNote, editNote } = useNotes()
+	const [selectedNote, setSelectedNote] = useState<Note | null>(null)
+	const [showEditor, setShowEditor] = useState(false)
 
-	const handleCreateNote = async () => {
+	const handleCreateNote = () => {
+		setSelectedNote(null)
+		setShowEditor(true)
+	}
+
+	const handleEditNote = (note: Note) => {
+		setSelectedNote(note)
+		setShowEditor(true)
+	}
+
+	const handleSaveNote = async (noteData: { id?: number; title: string; content: string }) => {
 		try {
-			await addNote({
-				title: "Sample Note",
-				content: "This is a sample note created at " + new Date().toLocaleTimeString()
-			})
+			if (noteData.id) {
+				// Editing existing note
+				await editNote(noteData as any)
+				setSelectedNote(null)
+			} else {
+				// Creating new note
+				await addNote(noteData)
+			}
+			setShowEditor(false)
 		} catch (error) {
-			console.error("Failed to create note:", error)
+			console.error("Failed to save note:", error)
 		}
+	}
+
+	const handleCancelEditor = () => {
+		setSelectedNote(null)
+		setShowEditor(false)
 	}
 
 	const handleDeleteNote = async (id: number) => {
@@ -41,13 +66,23 @@ function App() {
 						onClick={handleCreateNote}
 						className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
 					>
-						Add Sample Note
+						Create New Note
 					</button>
 				</div>
 
 				{error && (
 					<div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
 						Error: {error}
+					</div>
+				)}
+
+				{showEditor && (
+					<div className="mb-8">
+						<NoteEditor
+							note={selectedNote}
+							onSave={handleSaveNote}
+							onCancel={handleCancelEditor}
+						/>
 					</div>
 				)}
 
@@ -60,7 +95,12 @@ function App() {
 				) : (
 					<div className="grid gap-4">
 						{notes.map(note => (
-							<NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
+							<NoteCard
+								key={note.id}
+								note={note}
+								onDelete={handleDeleteNote}
+								onEdit={handleEditNote}
+							/>
 						))}
 					</div>
 				)}
