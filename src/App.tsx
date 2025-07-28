@@ -60,11 +60,7 @@ function App() {
 				) : (
 					<div className="grid gap-4">
 						{notes.map(note => (
-							<NoteCard
-								key={note.id}
-								note={note}
-								onDelete={handleDeleteNote}
-							/>
+							<NoteCard key={note.id} note={note} onDelete={handleDeleteNote} />
 						))}
 					</div>
 				)}
