@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react"
-import { createNote, deleteNote, getAllNotes, updateNote } from "../db/db"
+import { createNote, deleteNote, getAllNotes, searchNotes, updateNote } from "../db/db"
 import type { Note, NoteCreate, NoteUpdate } from "../types/note"
 import { sortNotesByUpdatedAt } from "../utils/sort"
 
@@ -67,6 +67,27 @@ export function useNotes() {
 		}
 	}, [])
 
+	const searchNotesQuery = useCallback(
+		async (query: string) => {
+			try {
+				if (!query.trim()) {
+					await loadNotes()
+					return
+				}
+
+				setLoading(true)
+				const results = await searchNotes(query)
+				setNotes(sortNotesByUpdatedAt(results))
+				setError(null)
+			} catch (err) {
+				setError(err instanceof Error ? err.message : "Failed to search notes")
+			} finally {
+				setLoading(false)
+			}
+		},
+		[loadNotes]
+	)
+
 	useEffect(() => {
 		loadNotes()
 	}, [loadNotes])
@@ -78,6 +99,7 @@ export function useNotes() {
 		addNote,
 		editNote,
 		removeNote,
+		searchNotes: searchNotesQuery,
 		refresh: loadNotes
 	}
 }
